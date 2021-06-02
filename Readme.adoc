@@ -1,0 +1,4 @@
+= ls-diff
+François Lamboley <fload@me.com>
+
+Find file listing diffs between two folders.
