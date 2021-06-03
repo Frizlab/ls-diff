@@ -8,16 +8,11 @@ let package = Package(
 		.executable(name: "ls-diff", targets: ["ls-diff"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/apple/swift-argument-parser.git", .branch("async"))
+		.package(url: "https://github.com/apple/swift-argument-parser.git", from: "0.4.3")
 	],
 	targets: [
 		.executableTarget(name: "ls-diff", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
-		], swiftSettings: [
-			.unsafeFlags([
-				"-Xfrontend",
-				"-enable-experimental-concurrency"
-			])
 		]),
 		.testTarget(name: "lsdiffTests", dependencies: ["ls-diff"])
 	]

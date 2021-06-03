@@ -2,6 +2,27 @@ import Foundation
 
 
 
+class ListFilesOperation : Operation {
+	
+	struct OperationNotFinished : Error {}
+	
+	let url: URL
+	let withSizes: Bool
+	
+	var result = Result<Set<ListFiles.File>, Error>.failure(OperationNotFinished())
+	
+	init(url: URL, withSizes: Bool) {
+		self.url = url
+		self.withSizes = withSizes
+	}
+	
+	override func main() {
+		result = Result{ try ListFiles.listFiles(in: url, withSizes: withSizes) }
+	}
+	
+}
+
+
 enum ListFiles {
 	
 	enum Err : Error {
@@ -21,7 +42,7 @@ enum ListFiles {
 	}
 	
 	/** Returns a list of paths relative to the given URL folder */
-	static func listFiles(in folder: URL, withSizes: Bool) async throws -> Set<File> {
+	static func listFiles(in folder: URL, withSizes: Bool) throws -> Set<File> {
 		guard folder.isFileURL else {
 			throw Err.invalidArgument
 		}

@@ -22,9 +22,14 @@ struct LsDiff : ParsableCommand {
 	@Argument
 	var folder2: String
 	
-	func run() async throws {
-		let paths1 = try await ListFiles.listFiles(in: URL(fileURLWithPath: folder1), withSizes: computeSizeDiffToo)
-		let paths2 = try await ListFiles.listFiles(in: URL(fileURLWithPath: folder2), withSizes: computeSizeDiffToo)
+	func run() throws {
+		let queue = OperationQueue()
+		let op1 = ListFilesOperation(url: URL(fileURLWithPath: folder1), withSizes: computeSizeDiffToo)
+		let op2 = ListFilesOperation(url: URL(fileURLWithPath: folder2), withSizes: computeSizeDiffToo)
+		queue.addOperations([op1, op2], waitUntilFinished: true)
+		
+		let paths1 = try op1.result.get()
+		let paths2 = try op2.result.get()
 		
 		var hasDiff = false
 		if !skipDiff1 {let diff = paths1.subtracting(paths2); hasDiff = hasDiff || !diff.isEmpty; printDiff(diff, folderName: folder1)}
