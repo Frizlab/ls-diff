@@ -65,15 +65,16 @@ enum ListFiles {
 			guard let url = nextObject as? URL else {
 				throw Err.enumeratorReturnedANonURLObject
 			}
-			let path = url.absoluteURL.path
-			guard path.hasPrefix(rootFolderPath) else {
+			let fullPath = url.absoluteURL.path
+			guard fullPath.hasPrefix(rootFolderPath) else {
 				throw Err.enumeratorReturnedAnURLOutsideOfRootFolder
 			}
+			let path = String(fullPath.dropFirst(rootFolderPath.count))
 			guard !exclude.contains(where: { $0.rangeOfFirstMatch(in: path, range: NSRange(path.startIndex..<path.endIndex, in: path)).location != NSNotFound }) else {
 				continue
 			}
 			let size = withSizes ? try url.resourceValues(forKeys: [.fileSizeKey]).fileSize : nil
-			ret.insert(File(relativePath: String(path.dropFirst(rootFolderPath.count)), size: size))
+			ret.insert(File(relativePath: path, size: size))
 		}
 		return ret
 	}
