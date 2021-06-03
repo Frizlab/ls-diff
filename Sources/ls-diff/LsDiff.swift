@@ -16,6 +16,9 @@ struct LsDiff : ParsableCommand {
 	@Flag(inversion: .prefixedNo)
 	var skipDiff2 = false
 	
+	@Option(help: "A list of regexp that shall be ignored")
+	var exclude: [String] = []
+	
 	@Argument
 	var folder1: String
 	
@@ -23,9 +26,11 @@ struct LsDiff : ParsableCommand {
 	var folder2: String
 	
 	func run() throws {
+		let excludeRegexes = try exclude.map{ try NSRegularExpression(pattern: $0, options: []) }
+		
 		let queue = OperationQueue()
-		let op1 = ListFilesOperation(url: URL(fileURLWithPath: folder1), withSizes: computeSizeDiffToo)
-		let op2 = ListFilesOperation(url: URL(fileURLWithPath: folder2), withSizes: computeSizeDiffToo)
+		let op1 = ListFilesOperation(url: URL(fileURLWithPath: folder1), withSizes: computeSizeDiffToo, exclude: excludeRegexes)
+		let op2 = ListFilesOperation(url: URL(fileURLWithPath: folder2), withSizes: computeSizeDiffToo, exclude: excludeRegexes)
 		queue.addOperations([op1, op2], waitUntilFinished: true)
 		
 		let paths1 = try op1.result.get()

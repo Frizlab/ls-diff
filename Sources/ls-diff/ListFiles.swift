@@ -8,16 +8,18 @@ class ListFilesOperation : Operation {
 	
 	let url: URL
 	let withSizes: Bool
+	let exclude: [NSRegularExpression]
 	
 	var result = Result<Set<ListFiles.File>, Error>.failure(OperationNotFinished())
 	
-	init(url: URL, withSizes: Bool) {
+	init(url: URL, withSizes: Bool, exclude: [NSRegularExpression]) {
 		self.url = url
 		self.withSizes = withSizes
+		self.exclude = exclude
 	}
 	
 	override func main() {
-		result = Result{ try ListFiles.listFiles(in: url, withSizes: withSizes) }
+		result = Result{ try ListFiles.listFiles(in: url, withSizes: withSizes, exclude: exclude) }
 	}
 	
 }
@@ -42,7 +44,7 @@ enum ListFiles {
 	}
 	
 	/** Returns a list of paths relative to the given URL folder */
-	static func listFiles(in folder: URL, withSizes: Bool) throws -> Set<File> {
+	static func listFiles(in folder: URL, withSizes: Bool, exclude: [NSRegularExpression]) throws -> Set<File> {
 		guard folder.isFileURL else {
 			throw Err.invalidArgument
 		}
@@ -66,6 +68,9 @@ enum ListFiles {
 			let path = url.absoluteURL.path
 			guard path.hasPrefix(rootFolderPath) else {
 				throw Err.enumeratorReturnedAnURLOutsideOfRootFolder
+			}
+			guard !exclude.contains(where: { $0.rangeOfFirstMatch(in: path, range: NSRange(path.startIndex..<path.endIndex, in: path)).location != NSNotFound }) else {
+				continue
 			}
 			let size = withSizes ? try url.resourceValues(forKeys: [.fileSizeKey]).fileSize : nil
 			ret.insert(File(relativePath: String(path.dropFirst(rootFolderPath.count)), size: size))
